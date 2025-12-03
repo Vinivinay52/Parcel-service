@@ -1,5 +1,5 @@
 pipeline {
-   agent { label 'java' }
+   agent { label 'slave20' }
      // agent any
     tools {
         jdk 'JDK17'
