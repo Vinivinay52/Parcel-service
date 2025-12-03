@@ -1,76 +1,43 @@
 pipeline {
-    agent any
-
+   agent { label 'java' }
+     // agent any
     tools {
-        jdk 'java17'
-        maven 'maven3'
+        jdk 'JDK17'
+        maven 'maven'
     }
 
-    stages {
-        stage('Checkout Code') {
+   stages {
+
+        stage('Checkout') {
             steps {
-                checkout scm
+                git branch: 'feature-1', url: 'https://github.com/Sandeepdevops22/Parcel-service.git'
             }
         }
 
-        stage('Build with Maven') {
+        stage('Build') {
             steps {
-                sh 'mvn clean package -DskipTests'
+                sh 'mvn clean package -DskipTests=false'
             }
         }
 
         stage('Archive Artifact') {
             steps {
                 archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
-                echo "Artifact archived successfully."
             }
         }
 
-        stage('Run Application & Validate') {
+        stage('Run Application') {
             steps {
-                script {
-                    echo "Starting Spring Boot App..."
-
-                    // Run app in background
-                    sh 'nohup java -jar target/*.jar > app.log 2>&1 & echo $! > app.pid'
-
-                    sleep 10
-
-                    echo "Checking if app started..."
-
-                    def status = sh(script: 'curl --write-out "%{http_code}" --silent --output /dev/null http://localhost:8080', 
-                                     returnStdout: true).trim()
-
-                    if (status != "200") {
-                        error "App failed to start! HTTP Status: ${status}"
-                    } else {
-                        echo "App started successfully ✔"
-                    }
+                  sh 'mvn spring-boot:run'
+                  dir('/var/lib/jenkins/workspace/Parcel_service_feature-1/target') {
+                   sh """
+                     //   nohup java -jar simple-parcel-service-app-1.0-SNAPSHOT.jar > app.log 2>&1 &
+                        //echo "Application started"
+                   """
+                   
                 }
             }
-        }
-
-        stage('Wait 5 minutes') {
-            steps {
-                echo 'Keeping app running for 5 minutes...'
-                sleep(time: 5, unit: 'MINUTES')
-            }
-        }
-
-        stage('Stop Application') {
-            steps {
-                script {
-                    echo "Stopping app..."
-                    sh 'kill $(cat app.pid) || true'
-                }
-            }
-        }
-    }
-
-    post {
-        always {
-            echo "Post cleanup..."
-            sh 'pkill -f "java -jar" || true'
         }
     }
 }
+
