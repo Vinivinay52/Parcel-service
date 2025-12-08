@@ -1,12 +1,12 @@
-pipeline { 
+pipeline {
    agent { label 'slave20' }
-
+     // agent any
     tools {
         jdk 'JDK17'
         maven 'maven'
     }
 
-    stages {
+   stages {
 
         stage('Checkout') {
             steps {
@@ -16,23 +16,25 @@ pipeline {
 
         stage('Build') {
             steps {
-                dir('parcel-service') {  // Move into folder where pom.xml exists
-                    sh 'mvn clean package -DskipTests=false'
-                }
+                sh 'mvn clean package -DskipTests=false'
             }
         }
 
         stage('Archive Artifact') {
             steps {
-                archiveArtifacts artifacts: 'parcel-service/target/*.jar', fingerprint: true
+                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
             }
         }
 
         stage('Run Application') {
             steps {
-                dir('parcel-service') {
-                    sh 'nohup mvn spring-boot:run > app.log 2>&1 &'
-                    echo "Application started successfully"
+                  sh 'mvn spring-boot:run'
+                  dir('/var/lib/jenkins/workspace/Parcel_service_feature-1/target') {
+                   sh """
+                     //   nohup java -jar simple-parcel-service-app-1.0-SNAPSHOT.jar > app.log 2>&1 &
+                        //echo "Application started"
+                   """
+                   
                 }
             }
         }
