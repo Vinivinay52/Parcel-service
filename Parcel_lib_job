@@ -3,7 +3,13 @@
 pipeline {
     agent { label 'java' }
 
+    tools {
+        jdk 'JDK17'
+        maven 'maven'
+    }
+
     stages {
+
         stage('Library-Demo') {
             steps {
                 echo 'Executing a shared lib function'
@@ -14,19 +20,19 @@ pipeline {
         stage('Checkout') {
             steps {
                 script {
-                    sh("""
+                    sh """
                         rm -rf Parcel-service
-                        git clone https://github.com/Vinivinay52/Parcel-service.git
+                        git clone -b main https://github.com/Vinivinay52/Parcel-service.git
                         ls -ltr
-                    """)
+                    """
                 }
             }
         }
 
         stage('Build') {
             steps {
-                script {
-                    build 'install'
+                dir('Parcel-service') {
+                    sh 'mvn clean install'
                 }
             }
         }
